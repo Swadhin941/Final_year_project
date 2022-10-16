@@ -114,31 +114,31 @@ def book():
     res = cursor.fetchall()
     # print(ratings.shape)
     # return render_template('book_page.html')
-    if len(res) >= 3:
-        print('yes none')
-        return render_template('book_page.html')
-    else:
-        rating = ratings.drop_duplicates(['User-ID', 'ISBN'], keep='last')
-        ratings_with_name = rating.merge(books, on='ISBN')
-        num_rating_df = ratings_with_name.groupby(
-            ['Book-Title', 'ISBN']).count()['Book-Rating'].reset_index()
-        num_rating_df.rename(
-            columns={'Book-Rating': 'num_ratings'}, inplace=True)
-        avg_rating_df = ratings_with_name.groupby(
-            ['Book-Title', 'ISBN']).mean()['Book-Rating'].reset_index()
-        avg_rating_df.rename(
-            columns={'Book-Rating': 'avg_rating'}, inplace=True)
-        popular_df = num_rating_df.merge(
-            avg_rating_df, on=['Book-Title', 'ISBN'])
-        popular_df = popular_df[popular_df['num_ratings'] >= 250].sort_values(
-            'avg_rating', ascending=False)
-        popular_df = popular_df.merge(books, on=['Book-Title', 'ISBN'])
-        popular_df = popular_df.drop_duplicates(['Book-Title', 'ISBN'])[
-            ['Book-Title', 'ISBN', 'Book-Author', 'Image-URL-M', 'num_ratings', 'avg_rating']]
-        book_title = list(popular_df['Book-Title'].values)
-        isbn = list(popular_df['ISBN'].values)
-        image = list(popular_df['Image-URL-M'].values)
-        return render_template('book_page.html', book_name=book_title, isbn=isbn, image=image)
+    # if len(res) >= 3:
+    #     print('yes none')
+    #     return render_template('book_page.html')
+    # else:
+    rating = ratings.drop_duplicates(['User-ID', 'ISBN'], keep='last')
+    ratings_with_name = rating.merge(books, on='ISBN')
+    num_rating_df = ratings_with_name.groupby(
+        ['Book-Title', 'ISBN']).count()['Book-Rating'].reset_index()
+    num_rating_df.rename(
+        columns={'Book-Rating': 'num_ratings'}, inplace=True)
+    avg_rating_df = ratings_with_name.groupby(
+        ['Book-Title', 'ISBN']).mean()['Book-Rating'].reset_index()
+    avg_rating_df.rename(
+        columns={'Book-Rating': 'avg_rating'}, inplace=True)
+    popular_df = num_rating_df.merge(
+        avg_rating_df, on=['Book-Title', 'ISBN'])
+    popular_df = popular_df[popular_df['num_ratings'] >= 250].sort_values(
+        'avg_rating', ascending=False)
+    popular_df = popular_df.merge(books, on=['Book-Title', 'ISBN'])
+    popular_df = popular_df.drop_duplicates(['Book-Title', 'ISBN'])[
+        ['Book-Title', 'ISBN', 'Book-Author', 'Image-URL-M', 'num_ratings', 'avg_rating']]
+    book_title = list(popular_df['Book-Title'].values)
+    isbn = list(popular_df['ISBN'].values)
+    image = list(popular_df['Image-URL-M'].values)
+    return render_template('book_page.html', book_name=book_title, isbn=isbn, image=image)
 
 #     if(len(res)>=3):
 #         # rating.drop_duplicates('User-ID',keep='last')
