@@ -133,7 +133,8 @@ def book():
         popular_df = popular_df[popular_df['num_ratings'] >= 250].sort_values(
             'avg_rating', ascending=False)
         popular_df = popular_df.merge(books, on=['Book-Title', 'ISBN'])
-        popular_df = popular_df.drop_duplicates(['Book-Title', 'ISBN'])[['Book-Title', 'ISBN', 'Book-Author', 'Image-URL-M', 'num_ratings','avg_rating']]
+        popular_df = popular_df.drop_duplicates(['Book-Title', 'ISBN'])[
+            ['Book-Title', 'ISBN', 'Book-Author', 'Image-URL-M', 'num_ratings', 'avg_rating']]
         book_title = list(popular_df['Book-Title'].values)
         isbn = list(popular_df['ISBN'].values)
         image = list(popular_df['Image-URL-M'].values)
@@ -208,19 +209,37 @@ def logout():
 
 @app.route('/details')
 def details():
-    image= request.args.get('image')
-    isbn= request.args.get('isbn')
-    book_name= request.args.get('book_name')
-    return render_template('details.html',book_name= book_name,isbn= isbn,image= image)
+    image = request.args.get('image')
+    isbn = request.args.get('isbn')
+    book_name = request.args.get('book_name')
+    return render_template('details.html', book_name=book_name, isbn=isbn, image=image)
 
-@app.route('/rating',methods=['GET','POST'])
+
+@app.route('/rating', methods=['GET', 'POST'])
 def rating():
     rating = request.args.get('rating')
-    book_name= request.args.get('book_name')
+    rating = int(rating)*2
+    book_name = request.args.get('book_name')
+    isbn= request.args.get('isbn')
+    uid = (session['userid'],isbn,)
+    cursor = mysql.connection.cursor()
+    cursor.execute('''SELECT * FROM Rating where userid = %s AND ISBN = %s''', (uid))
+    res = cursor.fetchall()
+    if len(res)>=1:
+        val=(rating,session['userid'],isbn)
+        cursor.execute('''UPDATE rating SET rating = %s WHERE userid = %s AND ISBN = %s''',(val))
+        mysql.connection.commit()
+    else:
+        val=(session['userid'],isbn,rating)
+        cursor.execute('''INSERT INTO rating (userid, ISBN, rating) VALUES (%s,%s,%s)''',(val))
+        mysql.connection.commit()
+    print(len(res))
     print(rating)
+    print(isbn)
     print(book_name)
     print(session['userid'])
     return render_template('details.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
