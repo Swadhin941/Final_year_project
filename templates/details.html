@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        li {
+            display: inline-block;
+            font-size: 1.5rem;
+            color: black;
+        }
+
+        .text-yellow {
+            color: rgba(255, 188, 3, 0.773);
+        }
+    </style>
+    <title>Library</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-12 col-lg-12">
+                <h2 class="fw-bold">{{book_name}}</h2>
+                <p class="text-muted fw-bold">ISBN: {{isbn}}</p>
+                <div class="text-white " id="rating">
+                    <ul>
+                        <li><i class="bi bi-star-fill"></i></li>
+                        <li><i class="bi bi-star-fill"></i></li>
+                        <li><i class="bi bi-star-fill"></i></li>
+                        <li><i class="bi bi-star-fill"></i></li>
+                        <li><i class="bi bi-star-fill"></i></li>
+                    </ul>
+                </div>
+                <div class="text-center">
+                    <img src="{{image}}" alt="" class="img-fluid "
+                        style="height:300px;width:300px; border-radius:25px;border:2px solid black;box-shadow:5px 5px 5px 5px gray;">
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            let rat_val=0
+            $("li").mouseover(function () {
+                let current = $(this);
+                $("li").each(function (index) {
+                    $(this).addClass('text-warning')
+                    if (index == current.index()) {
+                        return false;
+                    }
+                })
+            })
+            $("li").click(function () {
+                $("li").removeClass("text-yellow")
+                $(".text-warning").addClass("text-yellow")
+                $("#mass").html($(".text-yellow").length)
+                rat_val = $(".text-yellow").length
+                $.ajax({
+                    url:"/rating",
+                    type:'get',
+                    data:{
+                        rating: rat_val,
+                        book_name: "{{book_name}}"
+                    }
+                })
+            })
+            $("li").mouseleave(function () {
+                $("li").removeClass('text-warning');
+            })
+
+
+        })
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

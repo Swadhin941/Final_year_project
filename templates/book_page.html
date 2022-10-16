@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <title>Library</title>
+    <style>
+        li {
+            display: inline-block;
+            /* font-size: 1.5rem; */
+        }
+
+        .text-yellow {
+            color: rgb(250, 250, 0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Cards section -->
+    <section>
+        <div class="container" style="background-color:whitesmoke ;">
+            <div class="row g-2">
+                {% for i in range(book_name|length) %}
+                <div class="col-3 col-md-3 col-lg-3">
+                    <div class="card" style="max-width:18rem; height:420px ;">
+                        <img src="{{image[i]}}" alt="" class="img-fluid card-img-top" style="height:240px" >
+                        <div class="card-body">
+                            {% if book_name|length >28  %}
+                            <h5 class="card-title">Book Name:{{book_name[i][0:28]}}...</h5>
+                            {% else %}
+                            <h5 class="card-title">Book Name:{{book_name[i]}}</h5>
+                            {% endif %}
+                            <span class="text-muted fw-bold d-inline-block" style="font-size:13px ;">ISBN: {{isbn[i]}}</span><br>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{url_for('details',book_name=book_name[i],isbn=isbn[i],image=image[i])}}" class="btn btn-outline-primary w-100">Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    <!-- <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: "/book",
+                type: "get",
+                data: {
+                    intro: "Swadhin Ghosh"
+                },
+                success: (response) => {
+                    response = JSON.parse(response)
+                    response.forEach(element => {
+                        console.log(element.ISBN)
+                    });
+                    let cards = document.getElementById('cards')
+                    let test=(e)=>{
+                        console.log(e.target)
+                    }
+                    response.map((element,index) => {
+                        let div = document.createElement('div')
+
+                        div.innerHTML = `
+                            <div class="card p-2 text-dark my-2" style="background-color:rgb(25, 187, 216) ;" >
+                        <div class="row">
+
+                            <div class="col-1 col-md-1 col-lg-1">
+                                <img src=${element.Image} alt="book image" class="img-fluid rounded">
+                            </div>
+                            <div class="col-11 col-md-11 col-lg-11">
+                                <p class="card-title fw-bold m-0">${element.Book_Name}</p>
+                                <span class="text-muted" style="font-size:9px ;">${element.ISBN}</span>
+                                <div class="text-white p-0 d-inline" id="rating">
+                                    <ul>
+                                        <li id=${index}><i class="bi bi-star-fill"></i></li>
+                                        <li id=${index}><i class="bi bi-star-fill"></i></li>
+                                        <li id=${index}><i class="bi bi-star-fill"></i></li>
+                                        <li id=${index}><i class="bi bi-star-fill"></i></li>
+                                        <li id=${index}><i class="bi bi-star-fill"></i></li>
+                                    </ul>
+
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" id="ssss" val=${element.ISBN} onclick="${test}">click</button>
+                        </div>
+                    </div>
+                            `
+                        
+                            $(`#${index}`).mouseover(function () {
+                            let current = $(this);
+                            $(`#${index}`).each(function (index) {
+                                $(this).addClass('text-warning')
+                                if (index == current.index()) {
+                                    return false;
+                                }
+                            })
+                        })
+                        $("li").click(function () {
+                            $("li").removeClass("text-yellow")
+                            $(".text-warning").addClass("text-yellow")
+                            $("#mass").html($(".text-yellow").length)
+                            rat_val = $(".text-yellow").length
+                        })
+                        $("li").mouseleave(function () {
+                            $("li").removeClass('text-warning');
+                        })
+                        cards.appendChild(div)
+                        console.log("{{session['username']}}")
+                        
+                        
+                    })
+
+                }
+            })
+
+        })
+
+
+    </script> -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
