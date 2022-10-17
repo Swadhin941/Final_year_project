@@ -220,24 +220,35 @@ def rating():
     rating = request.args.get('rating')
     rating = int(rating)*2
     book_name = request.args.get('book_name')
-    isbn= request.args.get('isbn')
-    uid = (session['userid'],isbn,)
+    isbn = request.args.get('isbn')
+    uid = (session['userid'], isbn,)
     cursor = mysql.connection.cursor()
-    cursor.execute('''SELECT * FROM Rating where userid = %s AND ISBN = %s''', (uid))
+    cursor.execute(
+        '''SELECT * FROM Rating where userid = %s AND ISBN = %s''', (uid))
     res = cursor.fetchall()
-    if len(res)>=1:
-        val=(rating,session['userid'],isbn)
-        cursor.execute('''UPDATE rating SET rating = %s WHERE userid = %s AND ISBN = %s''',(val))
+    if len(res) >= 1:
+        val = (rating, session['userid'], isbn)
+        cursor.execute(
+            '''UPDATE rating SET rating = %s WHERE userid = %s AND ISBN = %s''', (val))
         mysql.connection.commit()
+        f = open('Ratings.csv', 'a', newline='')
+        w = csv.writer(f)
+        record = []
+        record.append([session['userid'], isbn, rating])
+        w.writerows(record)
+        f.close()
+
     else:
-        val=(session['userid'],isbn,rating)
-        cursor.execute('''INSERT INTO rating (userid, ISBN, rating) VALUES (%s,%s,%s)''',(val))
+        val = (session['userid'], isbn, rating)
+        cursor.execute(
+            '''INSERT INTO rating (userid, ISBN, rating) VALUES (%s,%s,%s)''', (val))
         mysql.connection.commit()
-    print(len(res))
-    print(rating)
-    print(isbn)
-    print(book_name)
-    print(session['userid'])
+        f = open('Ratings.csv', 'a', newline='')
+        w = csv.writer(f)
+        record = []
+        record.append([session['userid'], isbn, rating])
+        w.writerows(record)
+        f.close()
     return render_template('details.html')
 
 
