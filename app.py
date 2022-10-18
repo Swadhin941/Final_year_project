@@ -106,89 +106,104 @@ def login():
 
 @app.route('/book', methods=['GET', "POST"])
 def book():
-    print(request.args.get('intro'))
-
     uid = (session['userid'],)
     cursor = mysql.connection.cursor()
     cursor.execute('''SELECT * FROM Rating where userid = %s''', (uid))
     res = cursor.fetchall()
+    book_name = []
+    image = []
+    isbn = []
+    author = []
     # print(ratings.shape)
     # return render_template('book_page.html')
-    # if len(res) >= 3:
-    #     print('yes none')
-    #     return render_template('book_page.html')
-    # else:
-    rating = ratings.drop_duplicates(['User-ID', 'ISBN'], keep='last')
-    ratings_with_name = rating.merge(books, on='ISBN')
-    num_rating_df = ratings_with_name.groupby(
-        ['Book-Title', 'ISBN']).count()['Book-Rating'].reset_index()
-    num_rating_df.rename(
-        columns={'Book-Rating': 'num_ratings'}, inplace=True)
-    avg_rating_df = ratings_with_name.groupby(
-        ['Book-Title', 'ISBN']).mean()['Book-Rating'].reset_index()
-    avg_rating_df.rename(
-        columns={'Book-Rating': 'avg_rating'}, inplace=True)
-    popular_df = num_rating_df.merge(
-        avg_rating_df, on=['Book-Title', 'ISBN'])
-    popular_df = popular_df[popular_df['num_ratings'] >= 250].sort_values(
-        'avg_rating', ascending=False)
-    popular_df = popular_df.merge(books, on=['Book-Title', 'ISBN'])
-    popular_df = popular_df.drop_duplicates(['Book-Title', 'ISBN'])[
-        ['Book-Title', 'ISBN', 'Book-Author', 'Image-URL-M', 'num_ratings', 'avg_rating']]
-    book_title = list(popular_df['Book-Title'].values)
-    isbn = list(popular_df['ISBN'].values)
-    image = list(popular_df['Image-URL-M'].values)
-    return render_template('book_page.html', book_name=book_title, isbn=isbn, image=image)
+    if len(res) > 3:
+        rating = ratings.drop_duplicates(['User-ID', 'ISBN'], keep='last')
+        book_with_rating = rating.merge(books, on='ISBN')
+        x = book_with_rating.groupby('User-ID').count()['Book-Rating'] > 3
+        special_user = x[x].index
+        x2 = book_with_rating[book_with_rating['User-ID'].isin(special_user)]
+        y = x2.groupby('Book-Title').count()['Book-Rating'] >= 50
+        famous_book = y[y].index
+        final = x2[x2['Book-Title'].isin(famous_book)]
+        test = final.pivot_table(
+            index='User-ID', columns='Book-Title', values='Book-Rating')
+        tes = test.copy(deep=True)
+        test.fillna('0', inplace=True)
+        test_dif = cosine_similarity(test)
+        li = []
+        li1 = []
+        data = int(session['userid'])
+        s = np.where(test.index == data)[0][0]
+        s1 = sorted(list(enumerate(test_dif[s])),
+                    key=lambda x: x[1], reverse=True)[1:10]
+        for i in s1:
+            li1.append(i[1])
+            li.append(test.index[i[0]])
+        dst = test[test.index.isin(li)]
+        tes = tes[tes.index.isin(dst.index)]
+        book_score = {}
+        for i in tes.columns:
+            book_val = tes[i]
+            total = 0
+            count = 0
+            for j in range(len(tes.index)):
+                if pd.isna(book_val[tes.index[j]]) == False:
+                    total += book_val[tes.index[j]] * li1[j]
+                    count += 1
+            if (total != 0):
+                book_score[i] = total/count
+        # book_score.items()
+        book_score = pd.DataFrame(book_score.items(), columns=[
+                                  'book_name', "total_score_of_book"])
+        book_final_score = book_score.sort_values(
+            by='total_score_of_book', ascending=False)
+        final_book = book_final_score.head(10).copy(deep=True)
+        data_book = []
+        for i in final_book['book_name']:
+            book_item = []
+            temp_df = final[final['Book-Title'] == i]
+            book_item.extend(list(temp_df.drop_duplicates(
+                'Book-Title')['Book-Title'].values))
+            book_item.extend(list(temp_df.drop_duplicates(
+                'Book-Title')['Book-Author'].values))
+            book_item.extend(list(temp_df.drop_duplicates(
+                'Book-Title')['Image-URL-M'].values))
+            book_item.extend(
+                list(temp_df.drop_duplicates('Book-Title')['ISBN'].values))
+            data_book.append(book_item)
 
-#     if(len(res)>=3):
-#         # rating.drop_duplicates('User-ID',keep='last')
-#         # book_with_rating=rating.merge(book, on='ISBN')
-#         # x=book_with_rating.groupby('User-ID').count()['Book-Rating'] > 3
-#         # special_user= x[x].index
-#         # x2=book_with_rating[book_with_rating['User-ID'].isin(special_user)]
-#         # y= x2.groupby('Book-Title').count()['Book-Rating'] >= 50
-#         # famous_book= y[y].index
-#         # final=x2[x2['Book-Title'].isin(famous_book)]
-#         # test=final.pivot_table(index='User-ID', columns='Book-Title',values='Book-Rating')
-#         # tes=test.copy(deep=True)
-#         # test.fillna('0',inplace=True)
-#         # test_dif= cosine_similarity(test)
-#         # li=[]
-#         # li1=[]
-#         # data= 256
-#         # s=np.where(test.index== data)[0][0]
-#         # s1=sorted(list(enumerate(test_dif[s])),key=lambda x:x[1], reverse=True)[1:10]
-#         # print(s1)
-#         # for i in s1:
-#         #     li1.append(i[1])
-#         #     li.append(test.index[i[0]])
-#         # dst=test[test.index.isin(li)]
-#         # tes=tes[tes.index.isin(dst.index)]
-#         # book_score={}
-#         # for i in tes.columns:
-#         #     book_val= tes[i]
-#         #     total=0
-#         #     count=0
-#         #     for j in range(len(tes.index)):
-#         #         if pd.isna(book_val[tes.index[j]])== False :
-#         #             total+=book_val[tes.index[j]]* li1[j]
-#         #             count+=1
-#         #     if(total != 0):
-#         #         book_score[i]=total/count
-#         # #book_score.items()
-#         # book_score=pd.DataFrame(book_score.items(),columns=['book_name',"total_score_of_book"])
-#         # book_final_score=book_score.sort_values(by='total_score_of_book',ascending=False)
-#         # final_book=book_final_score.head(10).copy(deep=True)
-#         # data_book=[]
-#         # for i in final_book['book_name']:
-#         #     book_item=[]
-#         #     temp_df=final[final['Book-Title']==i]
-#         #     book_item.extend(list(temp_df.drop_duplicates('Book-Title')['Book-Title'].values))
-#         #     book_item.extend(list(temp_df.drop_duplicates('Book-Title')['Book-Author'].values))
-#         #     book_item.extend(list(temp_df.drop_duplicates('Book-Title')['Image-URL-M'].values))
-#         #     data_book.append(book_item)
-#     else:
-#     return render_template('book_page.html')
+        for i in data_book:
+            book_name.append(i[0])
+            image.append(i[2])
+            isbn.append(i[3])
+            author.append(i[1])
+        book_name= list(book_name)
+        isbn= list(isbn)
+        image= list(image)
+        author= list(author)
+    else:
+        rating = ratings.drop_duplicates(['User-ID', 'ISBN'], keep='last')
+        ratings_with_name = rating.merge(books, on='ISBN')
+        num_rating_df = ratings_with_name.groupby(
+            ['Book-Title', 'ISBN']).count()['Book-Rating'].reset_index()
+        num_rating_df.rename(
+            columns={'Book-Rating': 'num_ratings'}, inplace=True)
+        avg_rating_df = ratings_with_name.groupby(
+            ['Book-Title', 'ISBN']).mean()['Book-Rating'].reset_index()
+        avg_rating_df.rename(
+            columns={'Book-Rating': 'avg_rating'}, inplace=True)
+        popular_df = num_rating_df.merge(
+            avg_rating_df, on=['Book-Title', 'ISBN'])
+        popular_df = popular_df[popular_df['num_ratings'] >= 250].sort_values(
+            'avg_rating', ascending=False)
+        popular_df = popular_df.merge(books, on=['Book-Title', 'ISBN'])
+        popular_df = popular_df.drop_duplicates(['Book-Title', 'ISBN'])[
+            ['Book-Title', 'ISBN', 'Book-Author', 'Image-URL-M', 'num_ratings', 'avg_rating']]
+        book_name = list(popular_df['Book-Title'].values)
+        isbn = list(popular_df['ISBN'].values)
+        image = list(popular_df['Image-URL-M'].values)
+        author = list(popular_df['Book-Author'].values)
+    return render_template('book_page.html', book_name=book_name, isbn=isbn, image=image, author=author)
 
 
 @app.route('/csv')
